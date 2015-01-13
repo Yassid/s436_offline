@@ -1,0 +1,122 @@
+detector to daq configuration 														
+														
+												
+AMSC_SETTING_BEGIN						
+0_7_upstream/8_15_downstream				not_read_out:-1	not_read_out:-1	not_read_out:-1
+Plane_Order	MWDC	PLANE	WIRE_group	i_AMSC(DAQ)	i_AMSC(geo)	AMSC_group
+0	A	V'	0	0	10	0
+0	A	V'	1	0	10	1
+0	A	V'	2	0	10	2
+2	A	U'	0	0	10	3
+2	A	U'	1	1	11	0								
+2	A	U'	2	1	11	1								
+4	A	X'	0	1	11	2								
+4	A	X'	1	1	11	3								
+4	A	X'	2	2	12	0								
+1	A	V	0	2	12	1								
+1	A	V	1	2	12	2								
+1	A	V	2	2	12	3								
+3	A	U	0	3	13	0								
+3	A	U	1	3	13	1								
+3	A	U	2	3	13	2								
+5	A	X	0	3	13	3								
+5	A	X	1	4	14	0								
+5	A	X	2	4	14	1								
+8	B	V'	0	4	14	2								
+8	B	V'	1	4	14	3								
+8	B	V'	2	5	15	0								
+10	B	U'	0	5	15	1								
+10	B	U'	1	5	15	2								
+10	B	U'	2	5	15	3								
+12	B	X'	0	6	16	0								
+12	B	X'	1	6	16	1								
+12	B	X'	2	6	16	2								
+9	B	V	0	6	16	3								
+9	B	V	1	7	17	0								
+9	B	V	2	7	17	1								
+11	B	U	0	7	17	2								
+11	B	U	1	7	17	3								
+11	B	U	2	8	18	0								
+13	B	X	0	8	18	1								
+13	B	X	1	8	18	2								
+13	B	X	2	8	18	3								
+6	A	X'n	0	-1	-1	-1								
+6	A	X'n	1	-1	-1	-1								
+6	A	X'n	2	-1	-1	-1								
+7	A	Xn	0	-1	-1	-1								
+7	A	Xn	1	-1	-1	-1								
+7	A	Xn	2	-1	-1	-1								
+14	B	X'n	0	-1	-1	-1								
+14	B	X'n	1	-1	-1	-1								
+14	B	X'n	2	-1	-1	-1								
+15	B	Xn	0	-1	-1	-1								
+15	B	Xn	1	-1	-1	-1								
+15	B	Xn	2	-1	-1	-1								
+AMSC_SETTING_END														
+														
+														
+														
+SCI_SETTING_BEGIN														
+(0_origin)	0=L_1=R		not_readout=-1		not_readout=-1			not_readout=-1			not_readout=-1			not_readout=-1
+i_sci	i_lr	name	i_V1742(daq)	ch_V1742	i_V792(daq)	ch_V792	i_V1290(daq)	ch_V1290	i_V775(daq)	ch_V775	i_V830(daq)	ch_V830	i_V820(daq)	ch_V820
+0	0	SCI1L	0	8	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1
+0	1	SCI1R	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1
+1	0	SCI2	0	16	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1
+2	0	SCI3L	0	1	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1
+2	1	SCI3R	0	24	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1
+3	0	SCI4L	0	17	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1
+3	1	SCI4R	0	9	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1
+SCI_SETTING_END														
+														
+			 											
+														
+MINI_SETTING_BEGIN														
+(0_origin)		not_readout=-1		not_readout=-1			not_readout=-1			not_readout=-1			not_readout=-1	
+i_mini	name	i_V1742(daq)	ch_V1742	i_V792(daq)	ch_V792	i_V1290(daq)	ch_V1290	i_V775(daq)	ch_V775	i_V830(daq)	ch_V830	i_V820(daq)	ch_V820	
+0	1U	0	25	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+1	1D	0	2	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+MINI_SETTING_END														
+														
+														
+														
+HIRAC_SETTING_BEGIN														
+(0_origin)		not_readout=-1		not_readout=-1			not_readout=-1			not_readout=-1			not_readout=-1	
+i_hirac	name	i_V1742(daq)	ch_V1742	i_V792(daq)	ch_V792	i_V1290(daq)	ch_V1290	i_V775	ch_V775	i_V830(daq)	ch_V830	i_V820(daq)	ch_V820	
+0	1U	0	10	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+1	2U	0	18	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+2	3U	0	26	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+3	4U	0	3	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+4	1D	0	11	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+5	2D	0	19	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+6	3D	0	27	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+7	4D	0	4	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+HIRAC_SETTING_END														
+														
+														
+														
+TORCH_SETTING_BEGIN														
+(0_origin)		not_readout=-1		not_readout=-1			not_readout=-1			not_readout=-1			not_readout=-1	
+i_hirac	name	i_V1742(daq)	ch_V1742	i_V792(daq)	ch_V792	i_V1290(daq)	ch_V1290	i_V775(daq)	ch_V775	i_V830(daq)	ch_V830	i_V820(daq)	ch_V820	
+0	1	0	5	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+1	2	0	13	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+2	3	0	21	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+3	4	0	29	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+4	5	0	6	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+5	6	0	14	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1		
+TORCH_SETTING_END														
+														
+														
+														
+OTHER_SETTING_BEGIN														
+(0_origin)		not_readout=-1		not_readout=-1			not_readout=-1			not_readout=-1			not_readout=-1	
+i_other	name	i_V1742(daq)	ch_V1742	i_V792(daq)	ch_V792	i_V1290(daq)	ch_V1290	i_V775(daq)	ch_V775	i_V830(daq)	ch_V830	i_V820(daq)	ch_V820	
+0	aaa	-1	25	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+1	bb	-1	26	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+2	c	-1	27	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+3	d	-1	28	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+4	e	-1	29	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+5	f	-1	30	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+6	g	-1	31	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+7	h	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+OTHER_SETTING_END
+

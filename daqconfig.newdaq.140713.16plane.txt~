@@ -1,0 +1,129 @@
+AMSC_SETTING						
+0_7_upstream/8_15_downstream				not_read_out:-1	not_read_out:-1	not_read_out:-1
+Plane_Order	MWDC	PLANE	WIRE_group	i_AMSC(DAQ)	i_AMSC(geo)	AMSC_group
+0	A	V'	0	0	8	0
+0	A	V'	1	0	8	1
+0	A	V'	2	0	8	2
+2	A	U'	0	0	8	3
+2	A	U'	1	1	9	0
+2	A	U'	2	1	9	1
+4	A	X'	0	1	9	2
+4	A	X'	1	1	9	3
+4	A	X'	2	2	10	0
+1	A	V	0	2	10	1
+1	A	V	1	2	10	2
+1	A	V	2	2	10	3
+3	A	U	0	3	11	0
+3	A	U	1	3	11	1
+3	A	U	2	3	11	2
+5	A	X	0	3	11	3
+5	A	X	1	4	12	0
+5	A	X	2	4	12	1
+8	B	V'	0	4	12	2
+8	B	V'	1	4	12	3
+8	B	V'	2	5	13	0
+10	B	U'	0	5	13	1
+10	B	U'	1	5	13	2
+10	B	U'	2	5	13	3
+12	B	X'	0	6	14	0
+12	B	X'	1	6	14	1
+12	B	X'	2	6	14	2
+9	B	V	0	6	14	3
+9	B	V	1	7	15	0
+9	B	V	2	7	15	1
+11	B	U	0	7	15	2
+11	B	U	1	7	15	3
+11	B	U	2	8	16	0
+13	B	X	0	8	16	1
+13	B	X	1	8	16	2
+13	B	X	2	8	16	3
+6	A	X'n	0	9	17	0
+6	A	X'n	1	9	17	1
+6	A	X'n	2	9	17	2
+7	A	Xn	0	9	17	3
+7	A	Xn	1	10	18	0
+7	A	Xn	2	10	18	1
+14	B	X'n	0	10	18	2
+14	B	X'n	1	10	18	3
+14	B	X'n	2	11	19	0
+15	B	Xn	0	11	19	1
+15	B	Xn	1	11	19	2
+15	B	Xn	2	11	19	3
+AMSC_SETTING_END						
+						
+						
+SCI_SETTING_BEGIN
+(0_origin)	0=L_1=R		not_readout=-1	
+i_sci	i_lr	name	i_V1742(daq)	ch_V1742    i_V792(daq)	ch_V792	 i_V1290(daq)	ch_V1290
+0	0	SC21L      	-1         -1	         1         15   	0	14
+0	1	SC21R	        -1   	   -1	         1     	   11	        0	15
+1	0	SC2HL         	-1	   -1	         1	    9	        0	12
+1	1	SC2HR	        -1	   -1	         1	    5	        0 	13
+2	0	SC2VU    	-1	   -1	         1     	    13	        0	10
+2	1	SC2VD	        -1	   -1	         1	    7	        0	11
+3	0	SC31L        	-1	   -1	         -1   	    -1	        -1	-1
+3	1	SC31R    	-1     	   -1          	 -1	    -1	        -1	-1
+4	0	SC41L        	-1	   -1	         0   	    8	        0	8
+4	1	SC41R    	-1     	   -1          	 0	    15	        0	9
+5	0	SC42L        	-1	   -1	         0   	    8	        0	8
+5	1	SC42R    	-1     	   -1          	 0	    15	        0	9
+6	0	TOF41L        	-1	   -1	         -1   	    -1	        -1	-1
+6	1	TOF41R    	-1     	   -1          	 -1	    -1	        -1	-1
+7	0	TOF42L        	-1	   -1	         -1   	    -1          -1	-1
+7	1	TOF42R    	-1     	   -1          	 -1	    -1	        -1	-1
+8	0	TOF43L        	-1	   -1	         -1   	    -1	        -1	-1
+8	1	TOF43R    	-1     	   -1          	 -1	    -1	        -1	-1
+SCI_SETTING_END									
+					
+
+V1290_OTHER_SETTING_BEGIN
+(0_origin)	not_readout=-1    T0: 0 for imod=0, 1 for imod=1, -1 for others 
+i	name   	i_V1290(daq)	ch_V1290    T0
+0	TOFF5F7Trig	0	7	    -1 
+1	F5Trig	        0	6	    -1
+2	F5F7Trig        0	5	    -1
+3	RF              0	4	    -1
+4	PlasticF01	0	3	    -1
+5	PlasticF02	0	2	    -1
+6	AMSCStop     	0	1           -1
+7	AccepTrig	0	0           1
+V1290_OTHER_SETTING_END
+	
+	
+V830_SETTING_BEGIN
+(0_origin)	not_readout=-1 
+i	name   	i_V830(daq)	ch_V830   check_normalization
+0	Req.Trig	0	0	    0
+1	Accep.Trig      0	1	    0
+2	Spill.Counter   0	2	    0
+3	1Hz	        0	3	    0
+4	10Hz     	0	4	    0
+5	SC01     	0	5	    0
+6	IC01-new    	0	6	    0
+7	SC-21	      	0	7	    0
+8	SC-41     	0	8	    0
+9	SEETRAM-old     0	9	    0
+10	SEETRAM-new     0	10	    0
+11	AccTrig	        0	11	    0
+12	IC01-old	0	12	    0
+13	start.extr	0	13	    0
+14	stop.extr    	0	14	    0
+15	AAAA	      	0	15	    0
+16	Beam.Trans	0	16	    0
+17	F5Trig	        0	17	    0
+18	F7Trig	        0	18	    0
+19	AccTrig	        0	19	    0
+20	PlasticF01	0	20          0
+21	PlasticF02	0	21	    0
+22	10kHz    	0	22	    0
+23	ReqTrig	      	0	23	    0
+24	F5F7Trig	0	24	    0
+25	F5Trig	        0	25	    0
+26	F7Trig	        0	26	    0
+27	AccTrig	        0	27	    0
+28	PlasticF01	0	28	    0
+29	PlasticF02	0	29	    0
+30	10kHz    	0	30          1
+31	ReqTrig	      	0	31	    0
+V830_SETTING_END
+

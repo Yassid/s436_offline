@@ -1,0 +1,86 @@
+#ifndef TFRSUNPACKEVENT_H
+#define TFRSUNPACKEVENT_H
+
+#include "Go4Event/TGo4EventElement.h"
+
+class TFRSUnpackProc;
+class TGo4FileSource;
+
+class TFRSUnpackEvent : public TGo4EventElement {
+   public:
+      TFRSUnpackEvent();
+      TFRSUnpackEvent(const char* name);
+      virtual ~TFRSUnpackEvent();
+      /**
+       * Method called by the event owner (analysis step) to fill the
+       * event element from the set event source. Event source can
+       * be the source of the analysis step (if this is a raw event) 
+       * or the event processor (if this is a reduced event).
+       */
+      virtual Int_t Fill();
+
+      /**
+       * Method called by the event owner (analysis step) to clear the
+       * event element.
+       */
+      virtual void Clear(Option_t *t="");  
+      virtual Int_t Init();  
+
+      //-------- etap crate  --------------------------
+      // amsc
+      Int_t amscl[16][64];        // AMSC [i_mod][i_ch]
+      Int_t amsct[16][64];        // AMSC [i_mod][i_ch]
+      Int_t amsc_length[16];      // AMSC [i_mod]
+      Int_t amsc_error[16];       // AMSC [i_mod]
+      Int_t amsc_itry[16];        // AMSC [i_mod]
+      // v830
+      Int_t v830n[32];         // v830 (scaler) value
+      Int_t v830_length;       // data length
+      Int_t v830_itry;         // itry    
+      // v830(MH)
+      Int_t v830n_mh[32];         // v830 (scaler) value
+      Int_t v830_length_mh;       // data length
+      Int_t v830_itry_mh;         // itry  
+      // v1290
+      Int_t v1290l[2][32];  
+      Int_t v1290t[2][32]; 
+      Int_t v1290_length[2]; 
+      Int_t v1290_itry[2]; 
+      // v792
+      Int_t v792q[2][16];
+      Int_t v792_length[2]; 
+      Int_t v792_itry[2]; 
+      // v775 
+      Int_t v775t[32];
+      Int_t v775_length; 
+      Int_t v775_itry; 
+      //-----------------------------------------------
+
+      //-------- fADC crate  --------------------------
+      Float_t v1742q[32];      // V1742_TEST
+      Float_t v1742baseline[32];      // V1742_TEST
+      Float_t v1742t[32];      // V1742_TEST
+      Int_t   v1742valid[32];      // V1742_TEST
+      Int_t   v1742_length;       // data length
+      Int_t   v1742_itry;         // itry   
+      //-----------------------------------------------
+
+      //-------- FRS crate  --------------------------
+      UInt_t vme0[21][32];         // FRS crate            
+      UInt_t vme1[21][32];         // TPC User crate 
+      //-----------------------------------------------
+
+      Int_t         qlength;         /* From event header     */
+      Int_t         qtype;           /*                       */
+      Int_t         qsubtype;        /*                       */
+      Int_t         qdummy;          /*                       */
+      Int_t         qtrigger;        /*                       */
+      Int_t         qevent_nr;       /*                       */
+
+   private:
+      TFRSUnpackProc *fxProc;     //! This is processor
+      TGo4FileSource *fxFileSrc;  //! This is file source
+
+   ClassDef(TFRSUnpackEvent,1)         
+};
+#endif //TFRSUNPACKEVENT_H

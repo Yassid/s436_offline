@@ -1,0 +1,402 @@
+#ifndef TFRSCALIBRPROCESSOR_H
+#define TFRSCALIBRPROCESSOR_H
+
+#include "TFRSBasicProc.h"
+#include  <iostream>
+#include  "TMath.h"
+#include  "TRandom1.h"
+#include "TFRSParameter.h"
+class TFRSCalibrEvent;
+class TFRSSortEvent;
+
+class TFRSCalibrProc : public TFRSBasicProc {
+   public:
+      TFRSCalibrProc() ;
+      TFRSCalibrProc(const char* name);
+      virtual ~TFRSCalibrProc() ;
+   
+      void FRSCalibr(TFRSCalibrEvent* tgt);
+      
+      void InitProcessor();
+		Bool_t bDrawHist;
+
+     
+	protected: 
+		Int_t counter;
+   private:
+      void Create_MON_Data();
+      void Create_MW_Data();
+      void Create_ETAP_Data();
+      void Create_TPC_Data();
+      void Create_s436_Data();
+      void Process_MON_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_MW_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_s436_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_ETAP_SCI_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_ETAP_Profile_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_TPC_ETAP_SCI_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_ETAP_MINI_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_ETAP_HIRAC_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_ETAP_TORCH_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_ETAP_MWDC_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_TEST(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_TPC_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+      void Process_ETAP_Scaler_Analysis(TFRSSortEvent& src, TFRSCalibrEvent& tgt);
+
+      TH1I* MakeH1I_MW(const char* foldername, 
+                       const char* name, int nameindex,
+                       Int_t nbins, 
+                       Float_t xmin, Float_t xmax, 
+                       const char* xtitle = "channels",
+                       Color_t linecolor = 2,
+                       Color_t fillcolor = 6);
+
+      TH1I* MakeH1I_TPC(const char* foldername, 
+                       const char* name, int nameindex,
+                       Int_t nbins, 
+                       Float_t xmin, Float_t xmax, 
+                       const char* xtitle = "channels",
+                       Color_t linecolor = 2,
+                       Color_t fillcolor = 6);
+
+
+
+      // from MON analysis
+      Bool_t        fbFirstEvent;
+      //unsigned int  scaler_save[64];
+      UInt_t         scaler_save[64];
+      UInt_t         firstsec;
+      UInt_t         firsttenthsec;
+      UInt_t         firsthundrethsec;	//mik
+      UInt_t         firstcycle;
+      UInt_t         firstseetram;
+      Float_t       dtime;
+      Float_t       dt_last;
+      Float_t       dt_diff;
+      
+      // MON data declarations
+      
+      TH1I          *hTimeStamp;
+      TH1I          *hTimeStampZoom;
+      TH1I          *hTimeSpill;
+      TH1I          *hMON_All;
+      TH1I          *hMON_All2;
+      TH1I          *hMON_scaler[64];
+      TH1I          *hMON_diff[64];
+      TH1I          *hMON_extr[64];
+      TH1I          *hMON_seecalA[8];
+      TH1I          *hMON_seecalB[8];
+      TH1I          *hMON_Pattern;
+      TH1I          *hMON_PatternH;
+      /*
+      TH1I          *hMON_TOE;
+      TH1I          *hMON_DtDiff;
+      TH1I          *hMON_SC01;
+      TH1I          *hMON_SC21;
+      TH1I          *hMON_SC41;
+      TH1I          *hMON_Trigger;
+      TH1I          *hMON_LAM;
+      TH1I          *hMON_SE01;
+      TH1I          *hMON_ICDE;
+      TH1I          *hMON_IC1;
+      TH1I          *hMON_IC1d;
+      TH1I          *hMON_IC2;
+      TH1I          *hMON_IC2d;
+      TH1I          *hMON_IC3;
+      TH1I          *hMON_IC3d;
+      */
+
+      // MWDC data declarations
+      TH1I          *hMWDC_NUMHIT[16];
+      TH1I          *hMWDC_NUMHITSUM;
+      TH1I          *hMWDC_NUMHITSUM0;
+      TH1I          *hMWDC_TIME[16];
+      TH1I          *hMWDC_TIME_wMaxToT[16];
+      TH1I          *hMWDC_TOT[16];
+      TH1I          *hMWDC_WIREPOS[16];
+      TH1I          *hMWDC_WIREID[16];
+      TH1I          *hMWDC_LENGTH[16];
+      // (tracking)
+      TH1I          *hMWDC_CHI2;
+      TH1I          *hMWDC_X;
+      TH1I          *hMWDC_Y;
+      TH1I          *hMWDC_A;
+      TH1I          *hMWDC_B;
+      TH2I          *hMWDC_XY;
+      TH2I          *hMWDC_AB;
+      TH2I          *hMWDC_XA;
+      TH2I          *hMWDC_YB;
+      TH1I          *hMWDC_RES[16];
+      TH1I          *hMWDC_RES_EX[16];
+      TH2I          *hMWDC_RES_LENGTH[16];
+      //    
+      TH1I          *hMWDC_CHI2_TEST[2];
+      TH1I          *hMWDC_X_TEST[2];
+      TH1I          *hMWDC_Y_TEST[2];
+      TH1I          *hMWDC_A_TEST[2];
+      TH1I          *hMWDC_B_TEST[2];
+      TH1I          *hMWDC_RES_TEST[2][8];
+      
+      // S4 Profile
+      TH1I          *hS4FOC_X;
+      TH1I          *hS4FOC_Y;
+      TH1I          *hS4FOC_A;
+      TH1I          *hS4FOC_B;
+      TH2I          *hS4FOC_XY;
+      TH2I          *hS4FOC_AB;
+      TH2I          *hS4FOC_XA;
+      TH2I          *hS4FOC_YB;
+
+      //------- ETAP-SCI --------
+      TH1I          *hSCI_QDC[16][2];
+      TH1I          *hSCI_T0_TDC[16][2];
+      TH1I          *hSCI_TDC[16][2];
+      TH1I          *hSCI_TDC_M[16][2];
+      TH1I          *hSCI_TIME[16][2];
+      TH1I          *hSCI_TIMEAVE[16];
+      TH1I          *hSCI_TIMEDIF[16];
+      TH1I          *hSCI_DE[16];
+      //2D
+      TH2I          *hSCI_TDC_QDC[16][2];
+      TH2I          *hSCI_DE_ToF[16];// 18-07-2014
+      TH2I          *hSCI_DE1_DE2[4];
+      TH2I          *hSCI_Angle_DE[4];//19-07-2014
+      TH2I          *hSCI_Pos_DE[4];//19-07-2014
+      TH1I          *hToF_ToF41_ToF42;
+
+      TH1I          *hCTof41L;
+      TGo4WinCond   *cTDC_SCI[10][2];
+
+      ////condtition for particle identification
+      //TGo4WinCond *cTPC_PI_TOF[6];
+      //TGo4WinCond *cTPC_PI_DE[6];
+      TGo4PolyCond *cPI_DE_TOF[4];
+
+      //----------------------------
+      TH1I *hTOFSC21LSC41L ;
+      TH1I *hTOFSC21RSC41R ;
+      TH1I *hTOFSC21SC41   ;
+      TH1I *hTOFSC41SC42;
+      TH2I *hTOFSC21SC41SC42;
+      TH2I *hTOFDE41SC41SC42;
+      TH2I *hTOFDE21SC41SC42;
+
+
+      //----------ETAP SCALER--------
+      TH1I          *hSCALER_TOTAL[1][32];
+      TH1I          *hSCALER_TIME[2][32]; 
+      TH1I          *hSCALER_SPILL_ON[2][32];
+      TH1I          *hSCALER_SPILL[2][32];
+      //----------ETAP SCALER--------
+      TH1I          *hSCALER_TOTAL_MH[1][32];
+      TH1I          *hSCALER_TIME_MH[2][32]; 
+      TH1I          *hSCALER_SPILL_ON_MH[2][32];
+      TH1I          *hSCALER_SPILL_MH[2][32];
+
+      Int_t          Start_ext_0;
+      Int_t          Start_ext;
+      Int_t          Clock_aux;
+
+      //------- mini HIRAC --------
+      TH1I          *hMINI_QDC[2];
+      TH1I          *hMINI_TDC[2];
+      TH1I          *hMINI_TIME[2];
+      TH1I          *hMINI_PE[2];
+      TH1I          *hMINI_PESUM;
+      TH1I          *hMINI_NUMHIT;
+      TH2I          *hMINI_TDC_QDC[2];
+
+
+      //------- HIRAC --------
+      TH1I          *hHIRAC_QDC_RAW[8];
+      TH1I          *hHIRAC_QDC_BASE[8];
+      TH2I          *hHIRAC_QDC_RAW_BASE[8];
+      TH1I          *hHIRAC_QDC_COR[8];
+      TH1I          *hHIRAC_PE[8];
+      TH1I          *hHIRAC_TDC_RAW[8];
+      TH1I          *hHIRAC_TDC_T0COR[8];
+      TH2I          *hHIRAC_TDC_QDC[8];
+      TH1I          *hHIRAC_TDC_COR[8];
+      TH1I          *hHIRAC_PESUM;
+      TH1I          *hHIRAC_X;
+      TH1I          *hHIRAC_NUMHIT;
+
+      //------- TORCH --------
+      TH1I          *hTORCH_QDC[6];
+      TH1I          *hTORCH_TDC[6];
+      TH1I          *hTORCH_TIME[6];
+      TH1I          *hTORCH_PE[6];
+      TH1I          *hTORCH_PESUM;
+      TH1I          *hTORCH_X;
+      TH1I          *hTORCH_NUMHIT;
+      TH2I          *hTORCH_TDC_QDC[6];
+
+
+      // MW data declarations
+      
+      //**** Raw spectra
+      TH1I          *hMW_AN[13];
+      TH1I          *hMW_XL[13];  
+      TH1I          *hMW_XR[13];
+      TH1I          *hMW_YU[13];
+      TH1I          *hMW_YD[13];
+
+      //**** Sum spectra
+      TH1I          *hMW_XSUM[13];
+      TH1I          *hMW_YSUM[13];
+      
+      //**** Position spectra
+      TH1I          *hMW_X[13];   
+      TH1I          *hMW_Y[13];
+      
+      TH2I          *hMW_XY[13];
+      
+      TH1I          *hMW_SC21x;
+      TH1I          *hMW_SC22x;
+      TH1I          *hMW_SC41x;
+      TH1I          *hitag_stopper_x;
+      TH1I          *hMW_SC41y;
+      TH1I          *hMW_SC81x;
+      TH1I          *hMW_MUSICx;
+      
+      //**** special for Helmut
+      TH1I          *hMW_WIRE[13];
+
+      //**** special for S214
+      TH2I          *hMW21x_Time;
+      
+      //**** special for Mauricio
+      TH1I          *hMW_xas4;
+      TH1I          *hMW_ybs4;
+      
+      //**** Focal spectra S2
+      TH1I          *hMW_xAngS2;  
+      TH1I          *hMW_yAngS2;
+      TH1I          *hMW_xFocS2;
+      TH1I          *hMW_yFocS2;
+      TH1I          *hMW_zxS2;
+      TH1I          *hMW_zyS2;
+      TH2I          *hMW_FocS2;
+ 
+      //**** Focal spectra S4
+      TH1I          *hMW_xAngS4;  
+      TH1I          *hMW_yAngS4;
+      TH1I          *hMW_xFocS4;
+      TH1I          *hMW_yFocS4;
+      TH1I          *hMW_zxS4;
+      TH1I          *hMW_zyS4;   
+      TH2I          *hMW_FocS4;
+   
+      //**** Focal spectra S8
+      TH1I          *hMW_xAngS8;  
+      TH1I          *hMW_yAngS8;
+      TH1I          *hMW_xFocS8;
+      TH1I          *hMW_yFocS8;
+      TH1I          *hMW_zxS8;
+      TH1I          *hMW_zyS8; 
+      
+      TGo4WinCond   *cMW_XSUM[13];
+      TGo4WinCond   *cMW_YSUM[13];
+      
+
+      // TPC part
+      // rawdata
+      TH1I *hTPC_L0[6];
+      TH1I *hTPC_R0[6];
+      TH1I *hTPC_LT0[6];
+      TH1I *hTPC_RT0[6];
+      TH1I *hTPC_L1[6];
+      TH1I *hTPC_R1[6];
+      TH1I *hTPC_LT1[6];
+      TH1I *hTPC_RT1[6];
+      // [index][anode_no]
+      TH1I *hTPC_DT[6][4];
+      TH1I *hTPC_A[6][4];
+
+      /// positions and control sum
+      TH1I *hTPC_XRAW0[6];
+      TH1I *hTPC_XRAW1[6];
+      TH1I *hTPC_YRAW[6];
+      TH1I *hTPC_X[6];
+      TH1I *hTPC_Y[6];
+      TH2I *hcTPC_XY[6];
+      TH2I *hTPC_LTRT[6];
+      TH1I *hTPC_DELTAX[6];
+
+      // CSUM[index][anode_no]
+      TH1I *hTPC_CSUM[6][4];
+
+
+      TH1I *hTPC_X_S2_foc;            //Positions @ S2 focus
+      TH1I *hTPC_Y_S2_foc;
+      TH1I *hTPC_AX_S2_foc;           //Angles @ S2 focus
+      TH1I *hTPC_AY_S2_foc;
+      TH1I *hTPC_X_S4;                //Positions @ S4 focus
+      TH1I *hTPC_Y_S4;
+      TH1I *hTPC_AX_S4;               //Angles @ S4 focus
+      TH1I *hTPC_AY_S4;
+      TH1I *hTPC_X_S4_target1;        //Positions @ Solid H2 Target @ S4
+      TH1I *hTPC_Y_S4_target1;
+      TH1I *hTPC_X_S4_target2;        //Positions @ Second Target @ S4
+      TH1I *hTPC_Y_S4_target2;
+      TH1I *hTPC_AX_S4_target2;       //Angles @ Second Target @ S4
+      TH1I *hTPC_AY_S4_target2;
+
+      TH2I *hTPC_XY_S4_target1;
+      TH2I *hTPC_XY_S4_target2;
+
+      TH2I *hTPC_XY_S4_target1d;
+      TH2I *hTPC_XY_S4_target2d;
+      TH1I *hTPC_X_S4_target1d;
+      TH1I *hTPC_Y_S4_target1d;
+      TH1I *hTPC_X_S4_target2d;
+      TH1I *hTPC_Y_S4_target2d;
+
+      TH2I *hTPC_XAX_S4;
+      TH2I *hTPC_XS4_AX_S2;
+
+      TH1I *hTPC_SC21x;
+      TH1I *hTPC_SC21y;
+      TH1I *hTPC_SC41x;
+      TH1I *hTPC_SC41y;
+     
+
+      // s436  19-07-2014
+      TRandom Rannb;//= new TRandom();
+      TH2I *hMWDC_s436_XZ;
+      TH2I *hMWDC_s436_YZ;
+      // 20-07-2014
+      TH2I *hMWDC_s436_plane[4];// Positions X and Y in different planes from angles and position on the MWDC
+      // 21-07-2014   
+      TH2I *hTPCS2_XZ;
+      TH2I *hTPCS2_YZ;
+      // 22-07-2014 
+      TH2I *hTextraction_XS4;
+      TH2I *hTextraction_AS4;
+      TH2I *hTPC1_TPC2_X;
+      TH2I *hTPC1_TPC2_Y;
+      TH2I *hToF_s2_s4;
+      TH2I *hMWDC_XA_s;
+      TH2I *hMWDC_YB_s;
+
+      TH1I *hFocal_X;
+      TH1I *hFocal_X2;
+      TH2I *hFocal_XY;
+      TH2I *hFocal_X_ToF_s4;
+      TH2I *hFocal_plane_s4_init;
+
+      ////condtition for control sum
+      TGo4WinCond *cTPC_CSUM[6][4];
+      TGo4PolyCond *cTPC_XY[6];
+
+            //**** keep values from previous event
+      Float_t       focx_s2m;
+      Float_t       focy_s2m;
+      Float_t       angle_x_s2m;
+      Float_t       angle_y_s2m;
+
+
+   ClassDef(TFRSCalibrProc,1)
+};
+
+#endif //TFRSCALIBRPROCESSOR_H

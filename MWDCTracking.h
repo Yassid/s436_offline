@@ -1,0 +1,89 @@
+#ifndef  MWDCTRACKING_H
+#define  MWDCTRACKING_H
+#include <iostream>
+#include "TMath.h"
+#define  MWDC_RESOLUTION_ASSUMED 0.2 // mm
+
+class MWDCTracking
+{
+ public:
+	MWDCTracking(); 
+	~MWDCTracking();
+	//----------------
+	void StoreHit(int, Float_t, Float_t, Float_t, Float_t,  Float_t, Float_t);  
+	int Tracking(void);
+	int Tracking_FitCylindrical(void);
+	int Tracking_LRfixed(void);
+	int ResidualExCalc(void);
+	int FindTime_wMaxToT(void);
+	//----------------
+	Float_t GetX(void);
+	Float_t GetY(void);
+	Float_t GetA(void);
+	Float_t GetB(void);
+	Float_t GetXError(void);
+	Float_t GetYError(void);
+	Float_t GetAError(void);
+	Float_t GetBError(void);
+	Float_t GetChi2(void);
+	Float_t GetResidual(int);
+	Float_t GetTime_wMaxToT(int);
+	Float_t GetExclusiveResidual(int);
+	void SetMaxHitCombination(int);
+	void SetMinPlaneEnebaled(int);
+	int  GetTrackingStatus(void);
+	int  GetNumEnabledPlane(void);
+	int  GetNumLRCombination(void);
+	int  GetNumHitCombination(void);
+	void GetPlaneEnabled(int*);
+	void GetHitCombination(int*);
+	void GetLRCombination(int*);
+	//----------------
+
+
+ private:
+	int TrackingInverseMatrix(void);
+	int TrackingFitCylindrical(void);
+	int NumEnabledPlaneTemp(void);
+	int NumLRCombinationTemp(void);
+	int NumHitCombinationTemp(void);
+	int HitCombinationTempIncrement(void);
+	int LRCombinationTempIncrement(void);
+	void SetHitCombinationTemp0(void);
+	void SetLRCombinationTemp0(void);
+	void CopyPlaneEnabled(int*, int*);
+	void CopyHitCombination(int*, int*);
+	void CopyLRCombination(int*, int*);
+	//---------------
+	int numhit[16]; 
+	Float_t wirepos[16][64];
+	Float_t length[16][64];
+	Float_t tot[16][64];
+	Float_t tot_max[16];
+	Float_t time[16][64];
+	Float_t theta[16];
+	Float_t zplane[16];
+	int max_hit_combination;
+	int min_plane_enabled;
+	int min_uv_plane_enabled;
+	//-------------
+	Float_t chi2_temp;
+	double x_temp, a_temp, y_temp, b_temp;
+	double xerr_temp, aerr_temp, yerr_temp, berr_temp;
+	Float_t residual_temp[16];
+	int plane_enabled_temp[16], i_hit_used_temp[16], LR_used_temp[16]; 
+	bool LR_fixed[16];
+	//------------- 
+	Float_t x_track, a_track, y_track, b_track;
+	Float_t xerr_track, aerr_track, yerr_track, berr_track;
+	Int_t time_wMaxToT[16];
+	Float_t chi2_track;
+	Float_t residual_track[16];
+	Float_t residual_track_ex[16];
+	int tracking_status;
+	int plane_enabled_track[16], i_hit_used_track[16], LR_used_track[16]; 
+	//--------------
+	
+};
+
+#endif // MWDCTRACKING_H

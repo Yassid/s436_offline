@@ -1,0 +1,603 @@
+#include "TFRSSortProc.h"
+#include "TFRSSortEvent.h"
+#include "TFRSUnpackEvent.h"
+#include "TFRSParameter.h"
+
+//#include  <iostream.h>
+#include  <stdio.h>
+
+TFRSSortProc::TFRSSortProc() : 
+   TFRSBasicProc("FRSSortProc") 
+{
+   StartOfSpilTime = -1;
+}
+
+TFRSSortProc::TFRSSortProc(const char* name) : 
+   TFRSBasicProc(name) 
+{ 
+   StartOfSpilTime = -1;
+	counter =0;
+}
+
+TFRSSortProc::~TFRSSortProc() {
+}
+
+void TFRSSortProc::FRSSort(TFRSSortEvent* tgt) {
+
+
+  tgt->SetValid(kTRUE);  // all events after unpack always accepted
+
+  TFRSUnpackEvent *src = dynamic_cast<TFRSUnpackEvent*> (GetInputEvent());
+  if (src==0) return;
+  
+  /* now we can assign the parameters according to cabling:  */
+
+  /* ### timestamp: */
+  tgt->ts_id = src->vme0[20][0];
+  tgt->ts_word[0] = src->vme0[20][0];
+  tgt->ts_word[1] = src->vme0[20][2];
+  tgt->ts_word[2] = src->vme0[20][4];
+  tgt->timestamp = Long64_t(1)*tgt->ts_word[0] + 
+                   Long64_t(0x10000)*tgt->ts_word[1] + 
+                   Long64_t(0x10000)*Long64_t(0x10000)*tgt->ts_word[2];
+  // printf("qtrigger=%d timestamp=%ld \n",src->qtrigger,tgt->timestamp);
+
+  if (src->qtrigger==12) {
+      StartOfSpilTime = tgt->timestamp;  
+      StartOfSpilTime2 = tgt->timestamp;  
+      // printf("12 spill start at %ld ",StartOfSpilTime);
+  }   
+  else 
+  if (src->qtrigger==13) {
+       StartOfSpilTime = -1;
+  }
+  //else                         //changed 170309
+  // rest are interesting only if trigger == 1
+  //if (src->qtrigger!=1 ) return;             
+  
+  // calculate time from spill start in sec
+  if (StartOfSpilTime>=0) 
+  { 
+    tgt->timespill = (tgt->timestamp - StartOfSpilTime) / 50000000.;
+    //printf("timespill= %f \n",tgt->timespill);    
+  }
+  tgt->timespill2 = (tgt->timestamp - StartOfSpilTime2) / 50000000.;
+
+
+  /* ### Pattern ###*/
+  tgt->pattern = src->vme0[5][0];
+  tgt->trigger = src->qtrigger;
+  
+
+  /* ### scalers:  */
+  /* these are treated as 32-bit integers directly  */
+  for(int i=0;i<32;i++){
+     tgt->sc_long[i] = src->vme0[6][i];
+     tgt->sc_long2[i] = src->vme1[5][i];
+  }
+
+  //cout<<"1Hz sort,"<<src->vme0[6][3]<<endl;       
+ 
+  /* ### TA Ionization Chamber dE:  */
+  //  tgt->ic_de = src->vme0[13][16] & 0xfff;
+  
+  ////////////////
+  ////  MWDC  ////    
+  ////////////////
+ 
+  TMWDCParameter* mwdc = (TMWDCParameter*) GetParameter("MWDCPar");
+
+  for(int i_module=0;i_module<16;i_module++){
+    for(int i_ch=0;i_ch<64;i_ch++){
+      Int_t amscltime, amscttime, j_hit, j_plane, j_wireid, j_wire_group, i_ch_group;
+      amscltime=src->amscl[i_module][i_ch];
+      amscttime=src->amsct[i_module][i_ch];
+
+      if(-999!=amscltime){// in this case there is a hit
+	//----
+	// convert  amsc (i_module,i_ch) to MWDC (j_plane, j_wireid) using mwdc parameter 
+	i_ch_group   = i_ch/16; // group 0(0-15),1(16-31),2(32-47),3(48-63) 
+	j_plane      = (mwdc->plane_num[i_module][i_ch_group]);
+	j_wire_group = (mwdc->wire_group[i_module][i_ch_group]);
+	j_wireid     = 16*j_wire_group + (i_ch%16);
+	
+	//----
+	// Fill values in tgt.
+	if(j_plane<0 || 16<=j_plane || j_wire_group<0 || 3<=j_wire_group){
+	  cout << "-------------------------------------------------"<<endl;
+	  cout << "unexpected value in j_plane or j_wireid" << endl ;
+	  cout << "check mwdc->plane_num[][] or mwdc->wire_group[][]"<<endl;
+	  cout << "-------------------------------------------------"<<endl;
+	}else{
+	  j_hit = (tgt->mwdc_numhit[j_plane]); // right side, initial value = 0;
+	  tgt->mwdc_numhit[j_plane]+=1;
+	  tgt->mwdc_time[j_plane][j_hit]=amscltime;
+	  tgt->mwdc_wireid[j_plane][j_hit]=j_wireid;
+	  if(-999!=amscttime){
+	    tgt->mwdc_tot[j_plane][j_hit]=(amscltime - amscttime);
+	  }
+	}	
+      }// end of if(-999!=amscltime)
+      
+      if(-999!=amscttime){
+	// convert  amsc (i_module,i_ch) to MWDC (j_plane, j_wireid) using mwdc parameter 
+	i_ch_group   = i_ch/16; // group 0(0-15),1(16-31),2(32-47),3(48-63) 
+	j_plane      = (mwdc->plane_num[i_module][i_ch_group]);
+	j_wire_group = (mwdc->wire_group[i_module][i_ch_group]);
+	j_wireid     = 16*j_wire_group + (i_ch%16);
+	tgt->mwdc_time_trail[j_plane][j_hit]=amscttime;
+      }
+
+    }
+  }
+
+  /*
+  /////////////////////
+  /////   mini    /////    
+  /////////////////////
+  
+  for(int i_mini = 0; i_mini < 2 ; i_mini++){
+    int imod_v792, ich_v792, imod_v1290, ich_v1290;
+      imod_v792 = (mwdc->imod_v792_mini[i_mini]);
+      ich_v792  = (mwdc->ich_v792_mini[i_mini]);
+      imod_v1290 = (mwdc->imod_v1290_mini[i_mini]);
+      ich_v1290  = (mwdc->ich_v1290_mini[i_mini]);
+      //
+      if((0<= imod_v792 || imod_v792<2) && (0<= imod_v1290 || imod_v1290<2) && (0<= ich_v1290 ||  ich_v1290<16) && (0<= ich_v792 || ich_v792<16)){ 
+	tgt->mini_q[i_mini] = src->v792q[imod_v792][ich_v792];
+	tgt->mini_t[i_mini] = src->v1290l[imod_v1290][ich_v1290];
+	tgt->mini_t_trail[i_mini] = src->v1290t[imod_v1290][ich_v1290];
+      }
+  }
+  
+
+
+  /////////////////////
+  ////  ETAP SCI   ////    
+  /////////////////////
+  */
+  for(int i_sci = 0; i_sci < (mwdc->num_sci) ; i_sci++){
+    for(int i_lr=0; i_lr<(mwdc->sci_num_channel[i_sci]); i_lr++){
+      int imod_v792, ich_v792, imod_v1290, ich_v1290;
+      imod_v792 = (mwdc->imod_v792_sci[i_sci][i_lr]);
+      ich_v792  = (mwdc->ich_v792_sci[i_sci][i_lr]);
+      imod_v1290 = (mwdc->imod_v1290_sci[i_sci][i_lr]);
+      ich_v1290  = (mwdc->ich_v1290_sci[i_sci][i_lr]);
+      //
+      if((0<= imod_v792 || imod_v792<2) && (0<= imod_v1290 || imod_v1290<2) && (0<= ich_v1290 ||  ich_v1290<32) && (0<= ich_v792 || ich_v792<16)){ 
+	tgt->etapsci_t[i_sci][i_lr] = src->v1290l[imod_v1290][ich_v1290];  // [i_sci][i_LR] (i_LR or i_UD) // 1290l = leading, 1290t = trailing
+	tgt->etapsci_t_trail[i_sci][i_lr] = src->v1290t[imod_v1290][ich_v1290]; 
+	tgt->etapsci_ml[i_sci][i_lr] = src->v1290ml[imod_v1290][ich_v1290]; 
+	tgt->etapsci_mt[i_sci][i_lr] = src->v1290mt[imod_v1290][ich_v1290]; 
+	tgt->etapsci_q[i_sci][i_lr] = src->v792q[imod_v792][ich_v792]; 
+
+	int imod_ref = (mwdc->imod_v1290_other[  (mwdc->i_T0_v1290[imod_v1290])  ]); // 26-Jul-2014 YT
+	int ich_ref  = (mwdc->ich_v1290_other [  (mwdc->i_T0_v1290[imod_v1290])  ]);
+	int time_reference = (src->v1290l[imod_ref][ich_ref]);
+	if((-999 !=time_reference)  && (-999!=(tgt->etapsci_t[i_sci][i_lr]))){
+	  tgt->etapsci_t0_t[i_sci][i_lr] =        time_reference - (tgt->etapsci_t[i_sci][i_lr]);
+	  tgt->etapsci_t0_t_trail[i_sci][i_lr] =  time_reference - (tgt->etapsci_t_trail[i_sci][i_lr]);
+	}
+      }
+    }
+  }
+  /*
+  /////////////////////
+  /////   HIRAC   /////    
+  /////////////////////
+  
+  for(int i_hirac = 0; i_hirac < 8 ; i_hirac++){
+    int imod_v792, ich_v792, imod_v1290, ich_v1290;
+    imod_v792 = (mwdc->imod_v792_hirac[i_hirac]);
+    ich_v792  = (mwdc->ich_v792_hirac[i_hirac]);
+    imod_v1290 = (mwdc->imod_v1290_hirac[i_hirac]);
+    ich_v1290  = (mwdc->ich_v1290_hirac[i_hirac]);
+
+    if((0<= imod_v792 || imod_v792<2) && (0<= imod_v1290 || imod_v1290<2) && (0<= ich_v1290 ||  ich_v1290<16) && (0<= ich_v792 || ich_v792<16)){      
+      tgt->hirac_t[i_hirac] = src->v1290l[imod_v1290][ich_v1290];  // l = leading
+      tgt->hirac_t_trail[i_hirac] = src->v1290t[imod_v1290][ich_v1290]; //t = trailing 
+      tgt->hirac_q[i_hirac] = src->v792q[imod_v792][ich_v792]; 
+    }
+  }
+
+
+  /////////////////////
+  /////   TORCH   /////    
+  /////////////////////
+  
+  for(int i_torch = 0; i_torch < 6 ; i_torch++){
+    int imod_v792, ich_v792, imod_v1290, ich_v1290;
+    imod_v792 = (mwdc->imod_v792_torch[i_torch]);
+    ich_v792  = (mwdc->ich_v792_torch[i_torch]);
+    imod_v1290 = (mwdc->imod_v1290_torch[i_torch]);
+    ich_v1290  = (mwdc->ich_v1290_torch[i_torch]);
+
+    if((0<= imod_v792 || imod_v792<2) && (0<= imod_v1290 || imod_v1290<2) && (0<= ich_v1290 ||  ich_v1290<16) && (0<= ich_v792 || ich_v792<16)){      
+      tgt->torch_t[i_torch] = src->v1290l[imod_v1290][ich_v1290];  // l = leading
+      tgt->torch_t_trail[i_torch] = src->v1290t[imod_v1290][ich_v1290]; //t = trailing 
+      tgt->torch_q[i_torch] = src->v792q[imod_v792][ich_v792]; 
+    }
+  }
+*/
+    
+  ///////////////////////  
+  ////  ETAP Scaler  ////  
+  ///////////////////////
+
+  int num_etap_scaler;
+  num_etap_scaler = (mwdc->num_ch_v830);
+  for(int i_scaler=0; i_scaler<num_etap_scaler; i_scaler++){
+    int i_ch_scaler;
+    i_ch_scaler  = (mwdc->ich_v830[i_scaler]) ;
+    tgt->etap_scaler[i_scaler] = (src->v830n[i_ch_scaler]);
+  }
+  
+  int num_mh_scaler;
+  num_mh_scaler = (mwdc->num_ch_v830);
+  for(int i_scaler=0; i_scaler<num_mh_scaler; i_scaler++){
+    int i_ch_scaler;
+    i_ch_scaler  = (mwdc->ich_v830_mh[i_scaler]) ;
+    tgt->mh_scaler[i_scaler] = (src->v830n_mh[i_ch_scaler]);
+  }
+
+  /* ### MW anodes:  */
+  for(int i=0;i<13;i++)
+    tgt->mw_an[i] = src->vme0[8][i] & 0xfff;
+    
+ /* ### MW cathodes:  */
+
+  /* ----- MW 11 (No. 1) ----- */
+  tgt->mw_xr[0] = src->vme0[8][16] & 0xfff;
+  tgt->mw_xl[0] = src->vme0[8][17] & 0xfff;
+  tgt->mw_yu[0] = src->vme0[8][18] & 0xfff;
+  tgt->mw_yd[0] = src->vme0[8][19] & 0xfff;
+
+  /* ----- MW 21 (No. 2) ----- */
+  tgt->mw_xr[1] = src->vme0[8][20] & 0xfff;
+  tgt->mw_xl[1] = src->vme0[8][21] & 0xfff;
+  tgt->mw_yu[1] = src->vme0[8][22] & 0xfff;
+  tgt->mw_yd[1] = src->vme0[8][23] & 0xfff;
+
+  /* ----- MW 22 (No. 3) ----- */
+  tgt->mw_xr[2] = src->vme0[8][24] & 0xfff;
+  tgt->mw_xl[2] = src->vme0[8][25] & 0xfff;
+  tgt->mw_yu[2] = src->vme0[8][26] & 0xfff;
+  tgt->mw_yd[2] = src->vme0[8][27] & 0xfff;
+
+  /* ----- MW 31 (No. 4) ----- */
+  tgt->mw_xr[3] = src->vme0[8][28] & 0xfff;
+  tgt->mw_xl[3] = src->vme0[8][29] & 0xfff;
+  tgt->mw_yu[3] = src->vme0[8][30] & 0xfff;
+  tgt->mw_yd[3] = src->vme0[8][31] & 0xfff;
+
+  /* ----- MW 41 (No. 5) ----- */
+  tgt->mw_xr[4] = src->vme0[9][0] & 0xfff;
+  tgt->mw_xl[4] = src->vme0[9][1] & 0xfff;
+  tgt->mw_yu[4] = src->vme0[9][2] & 0xfff;
+  tgt->mw_yd[4] = src->vme0[9][3] & 0xfff;
+
+  /* ----- MW 42 (No. 6) ----- */
+  tgt->mw_xr[5] = src->vme0[9][4] & 0xfff;
+  tgt->mw_xl[5] = src->vme0[9][5] & 0xfff;
+  tgt->mw_yu[5] = src->vme0[9][6] & 0xfff;
+  tgt->mw_yd[5] = src->vme0[9][7] & 0xfff;
+
+  /* ----- MW 51 (No. 7) ----- */
+  tgt->mw_xr[6] = src->vme0[9][8] & 0xfff;
+  tgt->mw_xl[6] = src->vme0[9][9] & 0xfff;
+  tgt->mw_yu[6] = src->vme0[9][10] & 0xfff;
+  tgt->mw_yd[6] = src->vme0[9][11] & 0xfff;
+
+  /* ----- MW 61 (No. 1) ----- */
+  /*  not included in readout! */
+  tgt->mw_xr[7] = 0;
+  tgt->mw_xl[7] = 0;
+  tgt->mw_yu[7] = 0;
+  tgt->mw_yd[7] = 0;
+
+  /* ----- MW 71 (No. 9) ----- */
+  tgt->mw_xr[8] = src->vme0[9][12] & 0xfff;
+  tgt->mw_xl[8] = src->vme0[9][13] & 0xfff;
+  tgt->mw_yu[8] = src->vme0[9][14] & 0xfff;
+  tgt->mw_yd[8] = src->vme0[9][15] & 0xfff;
+
+  /* ----- MW 81 (No. 10) ----- */
+  tgt->mw_xr[9] = src->vme0[9][16] & 0xfff;
+  tgt->mw_xl[9] = src->vme0[9][17] & 0xfff;
+  tgt->mw_yu[9] = src->vme0[9][18] & 0xfff;
+  tgt->mw_yd[9] = src->vme0[9][19] & 0xfff;
+
+  /* ----- MW 82 (No. 11) ----- */
+  tgt->mw_xr[10] = src->vme0[9][20] & 0xfff;
+  tgt->mw_xl[10] = src->vme0[9][21] & 0xfff;
+  tgt->mw_yu[10] = src->vme0[9][22] & 0xfff;
+  tgt->mw_yd[10] = src->vme0[9][23] & 0xfff;
+
+  /* ----- MW B1 (No. 12) ----- */
+  tgt->mw_xr[11] = src->vme0[9][24] & 0xfff;
+  tgt->mw_xl[11] = src->vme0[9][25] & 0xfff;
+  tgt->mw_yu[11] = src->vme0[9][26] & 0xfff;
+  tgt->mw_yd[11] = src->vme0[9][27] & 0xfff;
+
+  /* ----- MW B2 (No. 13) ----- */
+  tgt->mw_xr[12] = src->vme0[9][28] & 0xfff;
+  tgt->mw_xl[12] = src->vme0[9][29] & 0xfff;
+  tgt->mw_yu[12] = src->vme0[9][30] & 0xfff;
+  tgt->mw_yd[12] = src->vme0[9][31] & 0xfff;
+
+
+  //////////////////////////////////////
+  // TPC part                         //
+  //                                  //
+  //////////////////////////////////////
+  //ADC
+
+  //TPC 3 + TPC 4 (TPC 23 + TPC 24 @ S2) 
+  //TPC 3
+  tgt->tpc_a[2][0]=src->vme1[16][16] & 0xfff;
+  tgt->tpc_a[2][1]=src->vme1[16][17] & 0xfff;
+  tgt->tpc_a[2][2]=src->vme1[16][18] & 0xfff;
+  tgt->tpc_a[2][3]=src->vme1[16][19] & 0xfff;
+  tgt->tpc_l[2][0]=src->vme1[16][20] & 0xfff;
+  tgt->tpc_r[2][0]=src->vme1[16][21] & 0xfff;
+  tgt->tpc_l[2][1]=src->vme1[16][22] & 0xfff;
+  tgt->tpc_r[2][1]=src->vme1[16][23] & 0xfff;
+
+  // TPC 4 
+  tgt->tpc_a[3][0]=src->vme1[16][24] & 0xfff;
+  tgt->tpc_a[3][1]=src->vme1[16][25] & 0xfff;
+  tgt->tpc_a[3][2]=src->vme1[16][26] & 0xfff;
+  tgt->tpc_a[3][3]=src->vme1[16][27] & 0xfff;
+  tgt->tpc_l[3][0]=src->vme1[16][28] & 0xfff;
+  tgt->tpc_r[3][0]=src->vme1[16][29] & 0xfff;
+  tgt->tpc_l[3][1]=src->vme1[16][30] & 0xfff;
+  tgt->tpc_r[3][1]=src->vme1[16][31] & 0xfff;
+  
+ // TPC 5 + TPC 6 (TPC 41 + TPC 42 @ S4)
+  // TPC 5
+  tgt->tpc_a[4][0]=src->vme1[17][0] & 0xfff;
+  tgt->tpc_a[4][1]=src->vme1[17][1] & 0xfff;
+  tgt->tpc_a[4][2]=src->vme1[17][2] & 0xfff;
+  tgt->tpc_a[4][3]=src->vme1[17][3] & 0xfff;
+  tgt->tpc_l[4][0]=src->vme1[17][4] & 0xfff;
+  tgt->tpc_r[4][0]=src->vme1[17][5] & 0xfff;
+  tgt->tpc_l[4][1]=src->vme1[17][6] & 0xfff;
+  tgt->tpc_r[4][1]=src->vme1[17][7] & 0xfff;
+
+  //TPC 6
+  tgt->tpc_a[5][0]=src->vme1[17][8] & 0xfff;
+  tgt->tpc_a[5][1]=src->vme1[17][9] & 0xfff;
+  tgt->tpc_a[5][2]=src->vme1[17][10] & 0xfff;
+  tgt->tpc_a[5][3]=src->vme1[17][11] & 0xfff;
+  tgt->tpc_l[5][0]=src->vme1[17][12] & 0xfff;
+  tgt->tpc_r[5][0]=src->vme1[17][13] & 0xfff;
+  tgt->tpc_l[5][1]=src->vme1[17][14] & 0xfff;
+  tgt->tpc_r[5][1]=src->vme1[17][15] & 0xfff;
+
+  //TPC 1
+  tgt->tpc_a[0][0]=src->vme1[16][0] & 0xfff;
+  tgt->tpc_a[0][1]=src->vme1[16][1] & 0xfff;
+  tgt->tpc_a[0][2]=src->vme1[16][2] & 0xfff;
+  tgt->tpc_a[0][3]=src->vme1[16][3] & 0xfff;
+  tgt->tpc_l[0][0]=src->vme1[16][4] & 0xfff;
+  tgt->tpc_r[0][0]=src->vme1[16][5] & 0xfff;
+  tgt->tpc_l[0][1]=src->vme1[16][6] & 0xfff;
+  tgt->tpc_r[0][1]=src->vme1[16][7] & 0xfff;
+
+  // TPC 2
+  tgt->tpc_a[1][0]=src->vme1[16][8] & 0xfff;
+  tgt->tpc_a[1][1]=src->vme1[16][9] & 0xfff;
+  tgt->tpc_a[1][2]=src->vme1[16][10] & 0xfff;
+  tgt->tpc_a[1][3]=src->vme1[16][11] & 0xfff;
+  tgt->tpc_l[1][0]=src->vme1[16][12] & 0xfff;
+  tgt->tpc_r[1][0]=src->vme1[16][13] & 0xfff;
+  tgt->tpc_l[1][1]=src->vme1[16][14] & 0xfff;
+  tgt->tpc_r[1][1]=src->vme1[16][15] & 0xfff;
+ 
+  //TDC
+
+  // TPC 3 + TPC 4 (TPC 23 + TPC 24 @ S2)  
+  //TPC 3
+  tgt->tpc_dt[2][0]=src->vme1[8][16] & 0xfff;
+  tgt->tpc_dt[2][1]=src->vme1[8][17] & 0xfff;
+  tgt->tpc_dt[2][2]=src->vme1[8][18] & 0xfff;
+  tgt->tpc_dt[2][3]=src->vme1[8][19] & 0xfff;
+  tgt->tpc_lt[2][0]=src->vme1[8][20] & 0xfff;
+  tgt->tpc_rt[2][0]=src->vme1[8][21] & 0xfff;
+  tgt->tpc_lt[2][1]=src->vme1[8][22] & 0xfff;
+  tgt->tpc_rt[2][1]=src->vme1[8][23] & 0xfff;
+
+  //TPC 4
+  tgt->tpc_dt[3][0]=src->vme1[8][24] & 0xfff;
+  tgt->tpc_dt[3][1]=src->vme1[8][25] & 0xfff;
+  tgt->tpc_dt[3][2]=src->vme1[8][26] & 0xfff;
+  tgt->tpc_dt[3][3]=src->vme1[8][27] & 0xfff;
+  tgt->tpc_lt[3][0]=src->vme1[8][28] & 0xfff;
+  tgt->tpc_rt[3][0]=src->vme1[8][29] & 0xfff;
+  tgt->tpc_lt[3][1]=src->vme1[8][30] & 0xfff;
+  tgt->tpc_rt[3][1]=src->vme1[8][31] & 0xfff;
+
+  // TPC 5 + TPC 6 (TPC 41 + TPC 42 @ S4)  
+  //TPC 5
+  tgt->tpc_dt[4][0]=src->vme1[9][0] & 0xfff;
+  tgt->tpc_dt[4][1]=src->vme1[9][1] & 0xfff;
+  tgt->tpc_dt[4][2]=src->vme1[9][2] & 0xfff;
+  tgt->tpc_dt[4][3]=src->vme1[9][3] & 0xfff;
+  tgt->tpc_lt[4][0]=src->vme1[9][4] & 0xfff;
+  tgt->tpc_rt[4][0]=src->vme1[9][5] & 0xfff;
+  tgt->tpc_lt[4][1]=src->vme1[9][6] & 0xfff;
+  tgt->tpc_rt[4][1]=src->vme1[9][7] & 0xfff;
+
+  //TPC 6
+  tgt->tpc_dt[5][0]=src->vme1[9][8] & 0xfff;
+  tgt->tpc_dt[5][1]=src->vme1[9][9] & 0xfff;
+  tgt->tpc_dt[5][2]=src->vme1[9][10] & 0xfff;
+  tgt->tpc_dt[5][3]=src->vme1[9][11] & 0xfff;
+  tgt->tpc_lt[5][0]=src->vme1[9][12] & 0xfff;
+  tgt->tpc_rt[5][0]=src->vme1[9][13] & 0xfff;
+  tgt->tpc_lt[5][1]=src->vme1[9][14] & 0xfff;
+  tgt->tpc_rt[5][1]=src->vme1[9][15] & 0xfff;
+
+  //TPC 1
+  tgt->tpc_dt[0][0]=src->vme1[8][0] & 0xfff;
+  tgt->tpc_dt[0][1]=src->vme1[8][1] & 0xfff;
+  tgt->tpc_dt[0][2]=src->vme1[8][2] & 0xfff;
+  tgt->tpc_dt[0][3]=src->vme1[8][3] & 0xfff;
+  tgt->tpc_lt[0][0]=src->vme1[8][4] & 0xfff;
+  tgt->tpc_rt[0][0]=src->vme1[8][5] & 0xfff;
+  tgt->tpc_lt[0][1]=src->vme1[8][6] & 0xfff;
+  tgt->tpc_rt[0][1]=src->vme1[8][7] & 0xfff;
+
+  //TPC 2
+  tgt->tpc_dt[1][0]=src->vme1[8][8] & 0xfff;
+  tgt->tpc_dt[1][1]=src->vme1[8][9] & 0xfff;
+  tgt->tpc_dt[1][2]=src->vme1[8][10] & 0xfff;
+  tgt->tpc_dt[1][3]=src->vme1[8][11] & 0xfff;
+  tgt->tpc_lt[1][0]=src->vme1[8][12] & 0xfff;
+  tgt->tpc_rt[1][0]=src->vme1[8][13] & 0xfff;
+  tgt->tpc_lt[1][1]=src->vme1[8][14] & 0xfff;
+  tgt->tpc_rt[1][1]=src->vme1[8][15] & 0xfff;
+  
+  /* ### SCI dE:  */
+  tgt->de_21l = src->vme0[11][16] & 0xfff;
+  tgt->de_21r = src->vme0[11][17] & 0xfff;
+  tgt->de_41l = src->vme0[11][18] & 0xfff;
+  tgt->de_41r = src->vme0[11][19] & 0xfff;  
+  tgt->de_v1l = 0;
+  tgt->de_v1r = 0;  
+  tgt->de_v2l = 0;
+  tgt->de_v2r = 0;
+  tgt->de_v3  = 0;
+  tgt->de_42l = 0;
+  tgt->de_42r = 0;
+  
+  tgt->de_21ld = 0;    // 
+  tgt->de_21rd = 0;    //
+
+ //  /* ### SCI times:  */
+//   tgt->dt_21l_21r = src->vme0[12][0] & 0xfff;
+//   tgt->dt_41l_41r = src->vme0[12][1] & 0xfff;
+//   tgt->dt_21l_41l = src->vme0[12][2] & 0xfff;
+//   tgt->dt_21r_41r = src->vme0[12][3] & 0xfff;
+//   tgt->dt_42l_42r = 0;  
+//   tgt->dt_42l_21l = src->vme0[12][18] & 0xfff; //dt_41l_21l_raw
+//   tgt->dt_42r_21r = src->vme0[12][19] & 0xfff; //dt_41r_21r_raw
+  
+
+//   /* ### MUSIC OLD:  */
+//   for(int i=0;i<4;i++){
+//     tgt->music_t3[i] = src->vme1[9][16+i] & 0xfff;    //TIME
+//     tgt->music_e3[i] = src->vme0[12][4+i] & 0xfff;    //ENERGY
+//   }
+               
+//   /* ### TUM MUSIC dE:  */
+//   for(int i=0;i<8;i++){
+//     tgt->music_e1[i] = src->vme0[12][8+i] & 0xfff;
+//     tgt->music_e2[i] = src->vme0[12][24+i] & 0xfff;
+//   }
+    
+//   /* ### MUSIC temp & pressure:  */
+//   tgt->music_pres[0] = src->vme0[12][22] & 0xfff;
+//   tgt->music_temp[0] = src->vme0[12][23] & 0xfff;
+
+//   /*  not included in readout! */
+//   tgt->music_pres[1] = 0;
+//   tgt->music_temp[1] = 0;
+
+//   /*  not included in readout! */
+//   tgt->music_pres[2] = 0;
+//   tgt->music_temp[2] = 0;
+
+
+//   //Si detectors
+//   tgt->si_adc1 = src->vme3[8][0]& 0xfff; 
+//   tgt->si_adc2 = src->vme3[8][1]& 0xfff;
+//   for(int i=0;i<32;i++)
+//   		{tgt->dssd_adc[i] = src->vme3[6][i] & 0xfff;}
+	
+	
+ 
+// 	//--------------------------------------------------------------
+// 	//SIMBA
+// 	//--------------------------------------------------------------
+	
+// 	const int SIMBA_DSSD_Y_StripNum[3][32] = 
+// 		{
+// 			{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16},
+// 			{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16},
+// 			{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31}
+// 		};
+// 	for (int det=0;det<3;det++) {	
+// 		for (int ch=0;ch<32;ch++) {
+// 			tgt->simba_DSSD_Y_ADC[det][SIMBA_DSSD_Y_StripNum[det][ch]] = src->vme4[det][ch] & 0xfff;
+// 		}
+// 	}
+
+// 	const int SIMBA_SSSD_ADC_ch[4][7] = 
+// 		{
+// 			{6,5,4,3,2,1,0}, 
+// 			{7,8,9,10,11,12,13}, 
+// //			{14,15,16,17,18,19,20}, 
+// //			{21,22,23,24,25,26,27}
+// 			{16,17,18,19,20,21,22}, 
+// 			{23,24,25,26,27,28,29}
+// //	Method 2
+// //			{13,12,11,10,9,8,7},
+// //			{0,1,2,3,4,5,6},
+// //			{14,15,16,17,18,19,20},
+// //			{21,22,23,24,25,26,27}
+// //Method 3
+// //			{0,1,2,3,4,5,6},
+// //			{7,8,9,10,11,12,13},
+// //			{14,15,16,17,18,19,20},
+// //			{21,22,23,24,25,26,27}
+
+// 		};
+// 	for (int det=0;det<4;det++) {
+// 		for (int strip=0;strip<7;strip++) {
+// 			tgt->simba_SSSD_strip_ADC[det][strip] = src->vme4[3][SIMBA_SSSD_ADC_ch[det][strip]] & 0xfff;
+// 			//if(counter<1) {
+// 			//	printf("det:%d strip:%d ADC_ch:%d\n",det,strip,SIMBA_SSSD_ADC_ch[det][strip]);
+// 			//}
+// 		}
+// 	}
+// 	//if (counter<1) counter++;
+
+// 	const int SIMBA_Track_ADC_ch[2][2] = 
+// 		{
+// 			{1,0}, 
+// 			{2,3}
+// 		};
+// 	for (int det=0;det<2;det++) {
+// 		for (int strip=0;strip<2;strip++) {
+// 			tgt->simba_track_ADC[det][strip] = src->vme4[4][SIMBA_Track_ADC_ch[det][strip]] & 0xfff;
+// 		}
+// 	}
+	
+// 	const int SIMBA_DSSD_X_StripNum[3][64] = 
+// 		{
+// 			{59,60,57,58,55,56,53,54,51,52,49,50,47,48,45,46,43,44,41,42,39,40,37,38,35,36,33,34,31,32,29,30,27,28,25,26,23,24,21,22,19,20,17,18,15,16,13,14,11,12,9,10,7,8,5,6,3,4,1,2,63,0,61,62},
+// 			{0,60,2,1,4,3,6,5,8,7,10,9,12,11,14,13,16,15,18,17,20,19,22,21,24,23,26,25,28,27,30,29,32,31,34,33,36,35,38,37,40,39,42,41,44,43,46,45,48,47,50,49,52,51,54,53,56,55,58,57,63,59,61,62},
+// 			//{0,60,2,1,4,3,6,5,8,7,10,9,12,11,14,13,16,15,18,17,20,19,22,21,24,23,26,25,28,27,30,29,32,31,34,33,36,35,38,37,40,39,42,41,44,43,46,45,48,47,50,49,52,51,54,53,56,55,58,57,63,59,61,62}
+// 			{62,61,59,63,57,58,55,56,53,54,51,52,49,50,47,48,45,46,43,44,41,42,39,40,37,38,35,36,33,34,31,32,29,30,27,28,25,26,23,24,21,22,19,20,17,18,15,16,13,14,11,12,9,10,7,8,5,6,3,4,1,2,60,0}
+// 		};
+// 	for (int sis_input=5;sis_input<8;sis_input++) {
+// 		for (int sch=0;sch<64;sch++) {
+// 			//Need to map sequencer to gassiplex ch which cna then be mapped to strip number
+// 			const int gassiplex_ch= ((sch % 4) * 16) + (sch / 4);
+// 			const int stripNum = SIMBA_DSSD_X_StripNum[sis_input-5][gassiplex_ch];
+// 			if (stripNum < 60) {
+// 				tgt->simba_DSSD_X_ADC[sis_input-5][stripNum] = src->vme24[sis_input][sch] & 0xfff;
+// //			  if(counter<1) {
+// //				  	printf("sis:%d sch:%d gass_ch:%d stripNum:%d vme:%d ADC:%d\n",sis_input,sch,gassiplex_ch,stripNum,src->vme24[sis_input][sch] & 0xfff,tgt->simba_DSSD_X_ADC[sis_input-5][stripNum]);
+// //				}
+				
+// 			}
+// //			 else if(counter<1) printf("sis:%d sch:%d gass_ch:%d stripNum:%d\n",sis_input,sch,gassiplex_ch,stripNum);
+// 		}
+// 	}
+	counter++;
+
+}
+
+ClassImp(TFRSSortProc)
