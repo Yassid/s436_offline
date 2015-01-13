@@ -69,7 +69,7 @@ TFRSAnalysis::TFRSAnalysis(const char* lmd,
    TGo4AnalysisStep*       step1    = new TGo4AnalysisStep("Unpack",factory1,source1,store1,0);
    store1->SetOverwriteMode(kTRUE);
    step1->SetSourceEnabled(kTRUE);
-   step1->SetStoreEnabled(kFALSE);  // dissable output
+   step1->SetStoreEnabled(kTRUE);  // dissable output
    step1->SetProcessEnabled(kTRUE);
    step1->SetErrorStopEnabled(kTRUE);
    AddAnalysisStep(step1);
@@ -85,7 +85,7 @@ TFRSAnalysis::TFRSAnalysis(const char* lmd,
    TGo4FileStoreParameter*  store2   = new TGo4FileStoreParameter(out2);
    TGo4AnalysisStep*       step2    = new TGo4AnalysisStep("Sort",factory2,source2,store2,0);
    store2->SetOverwriteMode(kTRUE);
-   step2->SetSourceEnabled(kTRUE); // disable file input
+   step2->SetSourceEnabled(kFALSE); // disable file input
    step2->SetStoreEnabled(kFALSE);  // dissable output
    step2->SetProcessEnabled(kTRUE);
    step2->SetErrorStopEnabled(kTRUE);

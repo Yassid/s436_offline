@@ -22,7 +22,17 @@ void TFRSData::Fill(TFRSAnlEvent* anal, TFRSCalibrEvent* calibr){
   //
   //
   //
+    
+       calibr_freeTrig = calibr->freeTrig;
+       calibr_acptTrig = calibr->acptTrig;
+       
 
+      calibr_seconds = calibr_seconds;
+      calibr_tenthsecs = calibr_tenthsecs;
+      calibr_hundrethsecs = calibr_hundrethsecs;	//mik
+      calibr_extraction_cycle = calibr_extraction_cycle;
+      
+      calibr_seetram = calibr_seetram;
 
 
   // TPC part
@@ -58,6 +68,78 @@ void TFRSData::Fill(TFRSAnlEvent* anal, TFRSCalibrEvent* calibr){
   // calibr_tpc_sc41_x = calibr->tpc_sc41_x;
   // calibr_tpc_sc21_y = calibr->tpc_sc21_y;
   // calibr_tpc_sc41_y = calibr->tpc_sc41_y;
+
+    // ETAP scaler - > Yassid 13-01-2015 17:58 JST 
+      for(Int_t i=0;i<64;i++){
+      calibr_mon_inc[i] = calibr->mon_inc[i];
+      calibr_etap_scaler[i] = calibr->etap_scaler[i];
+      calibr_etap_scaler_increase[i];
+      calibr_etap_scaler_normalized[i];
+
+      calibr_mh_scaler[i] =  calibr->mh_scaler[i];
+      calibr_mh_scaler_increase[i] = calibr->mh_scaler_increase[i];
+      calibr_mh_scaler_normalized[i] = calibr->mh_scaler_normalized[i];
+	}
+
+
+        //---ETAP-MWDC-Fitting---- Yassid 13-01-2015 18:06 JST 
+ 	calibr_mwdc_numtrack = calibr->mwdc_numtrack;
+        calibr_mwdc_chi2 = calibr->mwdc_chi2;
+        calibr_mwdc_x = calibr->mwdc_x;
+        calibr_mwdc_y = calibr->mwdc_y;
+  	calibr_mwdc_a = calibr->mwdc_a;
+        calibr_mwdc_b = calibr->mwdc_b;
+        
+  	 for(Int_t i=0;i<2;i++){
+  		calibr_mwdc_chi2_test[i] = calibr->mwdc_chi2_test[i];
+        	calibr_mwdc_x_test[i] = calibr->mwdc_x_test[i];
+        	calibr_mwdc_y_test[i] = calibr->mwdc_y_test[i];
+  		calibr_mwdc_a_test[i] = calibr->mwdc_a_test[i];
+        	calibr_mwdc_b_test[i] = calibr->mwdc_b_test[i];
+                calibr_mwdc_numtrack_estimate[i] = calibr->mwdc_numtrack_estimate[i];
+	   for(Int_t j=0;j<8;j++){
+        	calibr_mwdc_res_test[i][j] = calibr->mwdc_res_test[i][j];
+		}
+	}
+
+
+          for(Int_t i=0;i<16;i++){
+
+             calibr_coin[i] = calibr->coin[i];
+	     calibr_mwdc_res[i] = calibr->mwdc_res[i];
+             calibr_mwdc_res_ex[i] = calibr->mwdc_res_ex[i];
+             calibr_sci_timeave[i] =  calibr->sci_timeave[i];
+ 	     calibr_sci_timedif[i] = calibr->sci_timedif[i];
+             calibr_sci_de[i] = calibr->sci_de[i];
+
+		 for(Int_t j=0;j<2;j++){
+                        calibr_sci_qdc[i][j];
+ 	   		calibr_sci_tdc[i][j];
+  	   		calibr_sci_ml[i][j];
+           		calibr_sci_mt[i][j];
+           		calibr_sci_t0_tdc[i][j];
+           		calibr_sci_time[i][j];
+		 }
+
+	  }
+
+
+           calibr_focal_plane = calibr->focal_plane;
+           calibr_qdcvalid = calibr->qdcvalid;
+
+           calibr_tof_21l_41l = calibr->tof_21l_41l;
+           calibr_tof_21r_41r = calibr->tof_21r_41r;
+	   calibr_tof_21_41 = calibr->tof_21_41;
+           calibr_tof_41l_42l = calibr->tof_41l_42l;
+	   calibr_tof_41r_42r = calibr->tof_41r_42r; 
+	   calibr_tof_41_42 = calibr->tof_41_42;
+
+
+
+          
+            
+
+
 
 }
 

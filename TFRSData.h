@@ -14,8 +14,17 @@ class TFRSData : public TObject{
 
   //CALIBRATION PART! 23:50  21072014 Yassid
 
- 
+   UInt_t calibr_freeTrig;
+   UInt_t calibr_acptTrig;
+   UInt_t calibr_mon_inc[64];
 
+      Int_t         calibr_seconds;
+      Int_t         calibr_tenthsecs;
+      Int_t         calibr_hundrethsecs;	//mik
+      Int_t         calibr_extraction_cycle;
+      Int_t         calibr_coin[16];
+      Float_t       calibr_seetram;
+  
 
   // TPC part
   Float_t calibr_tpc_csum[6][4];
@@ -49,7 +58,44 @@ class TFRSData : public TObject{
   Float_t       calibr_tpc_sc21_y;      /* SC21 y                    */
   Float_t       calibr_tpc_sc41_y;      /* SC41 y                    */
 
-  //SORT PART! 
+     // ETAP scaler - > Yassid 13-01-2015 17:58 JST 
+      Int_t calibr_etap_scaler[64];
+      Int_t calibr_etap_scaler_increase[64];
+      Float_t calibr_etap_scaler_normalized[64];
+
+      Int_t calibr_mh_scaler[64];
+      Int_t calibr_mh_scaler_increase[64];
+      Float_t calibr_mh_scaler_normalized[64];
+
+
+       //---ETAP-MWDC-Fitting---- Yassid 13-01-2015 18:06 JST 
+ 	Int_t calibr_mwdc_numtrack, calibr_mwdc_numtrack_estimate[2];
+  	Float_t calibr_mwdc_chi2,calibr_mwdc_x,calibr_mwdc_y;
+  	Float_t calibr_mwdc_a,calibr_mwdc_b,calibr_mwdc_res[16];
+  	Float_t calibr_mwdc_res_ex[16];
+  	Float_t calibr_mwdc_chi2_test[2],calibr_mwdc_x_test[2],calibr_mwdc_y_test[2];
+  	Float_t calibr_mwdc_a_test[2],calibr_mwdc_b_test[2], calibr_mwdc_res_test[2][8];
+
+        Float_t calibr_focal_plane;
+        Int_t calibr_qdcvalid;
+
+  //---ETAP-SCI---//
+  Float_t calibr_sci_qdc[16][2];
+  Float_t calibr_sci_tdc[16][2];
+  Int_t calibr_sci_ml[16][2];
+  Int_t calibr_sci_mt[16][2];
+  Float_t calibr_sci_t0_tdc[16][2];
+  Float_t calibr_sci_time[16][2];
+  Float_t calibr_sci_timeave[16];
+  Float_t calibr_sci_timedif[16];
+  Float_t calibr_sci_de[16]; 
+
+   //--------------
+  Float_t calibr_tof_21l_41l,calibr_tof_21r_41r, calibr_tof_21_41;
+  Float_t calibr_tof_41l_42l,calibr_tof_41r_42r, calibr_tof_41_42;
+
+
+  //SORT PART! --------------------------------------------------------------------------------------
   
         
       Int_t sort_mwdc_numhit[16];
